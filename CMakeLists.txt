@@ -3,19 +3,18 @@ project(mwe)
 
 include(ExternalProject)
 
-ExternalProject_Add(LAPACK
-  PREFIX 3rd_party
-  URL https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.10.1.tar.gz
-  CONFIGURE_COMMAND mkdir -p build && cd build && cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-  BUILD_COMMAND cd build && make -j
-  BUILD_IN_SOURCE TRUE
-  INSTALL_COMMAND ""
-)
+#--- Configuration ---#
+set(USE_INTEL_MKL TRUE)
+
+if(USE_INTEL_MKL)
+else()
+  message(FATAL_ERROR "Currently, only USE_INTEL_MKL==TRUE is supported.")
+endif()
 
 ExternalProject_Add(IPOPT
   PREFIX 3rd_party
-  URL https://github.com/coin-or/Ipopt/archive/refs/heads/stable/3.14.zip
-  CONFIGURE_COMMAND ./configure --with-lapack-lflags="-L${CMAKE_CURRENT_BINARY_DIR}/3rd_party/src/LAPACK/build/lib -llapack -lblas -lm -lgfortran" --with-pardiso=
+  URL https://github.com/felixcra/Ipopt/archive/refs/heads/stable/3.14.zip
+  CONFIGURE_COMMAND ./configure CC=icx CXX=icpx
   BUILD_COMMAND make -j
   BUILD_IN_SOURCE TRUE
   INSTALL_COMMAND ""
@@ -26,7 +25,6 @@ add_executable(main
   src/MyNLP.cpp
 )
 
-add_dependencies(IPOPT LAPACK)
 add_dependencies(main IPOPT)
 
 target_include_directories(main
